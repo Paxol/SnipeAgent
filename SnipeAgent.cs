@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
 using System.Management;
 using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
 using System.Collections.Specialized;
 using SnipeSharp;
 using SnipeSharp.Endpoints.Models;
-using SnipeSharp.Endpoints.SearchFilters;
-
 
 namespace SnipeAgent
 {
@@ -58,21 +53,21 @@ namespace SnipeAgent
         public Location GetLocation(NameValueCollection appSettings, SnipeItApi snipe)
         {
             string assetLocation = this.Values["Location"];
-            Location currentLocation = new Location(assetLocation);
+            Location currentLocation = new Location { Name = assetLocation };
             return currentLocation;
         }
 
         public StatusLabel GetStatusLabel(NameValueCollection appSettings, SnipeItApi snipe)
         {
             string defaultLabel = appSettings["DefaultStatusLabel"];
-            StatusLabel defaultStatusLabel = new StatusLabel(defaultLabel);
+            StatusLabel defaultStatusLabel = new StatusLabel { Name = defaultLabel, Type = defaultLabel };
             return defaultStatusLabel;
         }
 
         public Company GetCompany(NameValueCollection appSettings, SnipeItApi snipe)
         {
             string companyName = appSettings["Company"];
-            Company currentCompany = new Company(companyName);
+            Company currentCompany = new Company{ Name = companyName };
             return currentCompany;
         }
 
@@ -90,14 +85,14 @@ namespace SnipeAgent
             {
                 Trace.WriteLine("Exception encountered while processing WinSystemType: " + e.ToString());
             }
-            Category currentCategory = new Category(systemTypeFull);
+            Category currentCategory = new Category { Name = systemTypeFull, Type = "asset" };
             return currentCategory;
         }
 
         public Manufacturer GetManufacturer(NameValueCollection appSettings, SnipeItApi snipe)
         {
             string manufacturer = GetOutputVariable("Win32_ComputerSystem.Manufacturer");
-            Manufacturer systemManufacturer = new Manufacturer(manufacturer);
+            Manufacturer systemManufacturer = new Manufacturer{ Name = manufacturer };
             return systemManufacturer;
         }
 

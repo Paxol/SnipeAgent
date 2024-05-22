@@ -48,5 +48,5 @@ This project is licensed under the [Apache 2.0 License](http://www.apache.org/li
 
 ## Acknowledgments
 * The project is based on [SnipeAgent] https://github.com/Scope-IT/SnipeAgent by [Daniel Hogg](https://github.com/danielhogg)
-* The project is based on [SnipeSharp API](https://github.com/cnitschkowski/SnipeSharp) by [barrycarey](https://github.com/barrycarey) and [cnitschkowski](https://github.com/cnitschkowski) with modifications by [velaar](https://github.com/velaar)
+* The project is based on [SnipeSharp API](https://github.com/cnitschkowski/SnipeSharp) by [barrycarey](https://github.com/barrycarey) and [cnitschkowski](https://github.com/cnitschkowski) with modifications by [velaar](https://github.com/velaar) and  [Paxol](https://github.com/Paxol/SnipeSharp)
 * Snipe-IT is required for proper operation, tested on v5.0+

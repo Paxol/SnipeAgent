@@ -10,6 +10,8 @@ using SnipeSharp.Endpoints.Models;
 using SnipeSharp.Endpoints.SearchFilters;
 using SnipeSharp.Common;
 using System.Net;
+using Newtonsoft.Json;
+using SnipeSharp.Endpoints.ExtendedManagers;
 
 namespace SnipeAgent
 {
@@ -159,29 +161,29 @@ namespace SnipeAgent
             List<IRequestResponse> messages = new List<IRequestResponse>();
 
             messages.Add(snipe.ManufacturerManager.Create(currentManufacturer));
-            SearchFilter manufacturerFilter = new SearchFilter(currentManufacturer.Name);
+            SearchFilter manufacturerFilter = new SearchFilter { Search = currentManufacturer.Name };
             Manufacturer updatedManufacturer = snipe.ManufacturerManager.FindOne(manufacturerFilter);
 
             messages.Add(snipe.CategoryManager.Create(currentCategory));
-            SearchFilter categoryFilter = new SearchFilter(currentCategory.Name);
+            SearchFilter categoryFilter = new SearchFilter { Search = currentCategory.Name };
             Category updatedCategory = snipe.CategoryManager.FindOne(categoryFilter);
 
             currentModel.Manufacturer = updatedManufacturer;
             currentModel.Category = updatedCategory;
             messages.Add(snipe.ModelManager.Create(currentModel));
-            SearchFilter modelFilter = new SearchFilter(currentModel.Name);
+            SearchFilter modelFilter = new SearchFilter { Search = currentModel.Name };
             Model updatedModel = snipe.ModelManager.FindOne(modelFilter);
 
             messages.Add(snipe.CompanyManager.Create(currentCompany));
-            SearchFilter companyFilter = new SearchFilter(currentCompany.Name);
+            SearchFilter companyFilter = new SearchFilter { Search = currentCompany.Name };
             Company updatedCompany = snipe.CompanyManager.FindOne(companyFilter);
 
             messages.Add(snipe.StatusLabelManager.Create(currentStatusLabel));
-            SearchFilter statusLabelFilter = new SearchFilter(currentStatusLabel.Name);
+            SearchFilter statusLabelFilter = new SearchFilter { Search = currentStatusLabel.Name };
             StatusLabel updatedStatusLabel = snipe.StatusLabelManager.FindOne(statusLabelFilter);
 
             messages.Add(snipe.LocationManager.Create(currentLocation));
-            SearchFilter locationFilter = new SearchFilter(currentLocation.Name);
+            SearchFilter locationFilter = new SearchFilter { Search = currentLocation.Name };
             Location updatedLocation = snipe.LocationManager.FindOne(locationFilter);
 
             currentAsset.Model = updatedModel;
@@ -191,7 +193,7 @@ namespace SnipeAgent
 
             string currentSerial = currentAsset.Serial;
 
-            Asset dbAsset = snipe.AssetManager.FindBySerial(currentSerial);
+            Asset dbAsset = FindAssetBySerial(snipe.AssetManager, currentSerial); 
 
             if (dbAsset == null)
             {
@@ -218,6 +220,14 @@ namespace SnipeAgent
             }
             
             return messages;
+        }
+
+        private Asset FindAssetBySerial(AssetEndpointManager assetManager, string serial)
+        {
+            string response = assetManager.ReqManager.Get($"{assetManager.EndPoint}/byserial/{serial}");
+            var result = JsonConvert.DeserializeObject<ResponseCollection<Asset>>(response);
+
+            return result.Total == 0L ? null : result.Rows?[0];
         }
     }
 }

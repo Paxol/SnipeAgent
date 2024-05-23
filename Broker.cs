@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SnipeSharp;
-using System.Diagnostics;
 using SnipeSharp.Endpoints.Models;
 using SnipeSharp.Endpoints.SearchFilters;
 using SnipeSharp.Common;
 using System.Net;
 using Newtonsoft.Json;
+using SnipeSharp.Endpoints;
 using SnipeSharp.Endpoints.ExtendedManagers;
 
 namespace SnipeAgent
@@ -160,31 +157,37 @@ namespace SnipeAgent
 
             List<IRequestResponse> messages = new List<IRequestResponse>();
 
-            messages.Add(snipe.ManufacturerManager.Create(currentManufacturer));
             SearchFilter manufacturerFilter = new SearchFilter { Search = currentManufacturer.Name };
-            Manufacturer updatedManufacturer = snipe.ManufacturerManager.FindOne(manufacturerFilter);
+            var updatedManufacturer = CreateEntityIfDoesNotExists(snipe.ManufacturerManager, currentManufacturer, manufacturerFilter, messages);
 
-            messages.Add(snipe.CategoryManager.Create(currentCategory));
             SearchFilter categoryFilter = new SearchFilter { Search = currentCategory.Name };
-            Category updatedCategory = snipe.CategoryManager.FindOne(categoryFilter);
+            var updatedCategory = CreateEntityIfDoesNotExists(snipe.CategoryManager, currentCategory, categoryFilter, messages);
 
             currentModel.Manufacturer = updatedManufacturer;
             currentModel.Category = updatedCategory;
-            messages.Add(snipe.ModelManager.Create(currentModel));
+
             SearchFilter modelFilter = new SearchFilter { Search = currentModel.Name };
-            Model updatedModel = snipe.ModelManager.FindOne(modelFilter);
+            var updatedModel = CreateEntityIfDoesNotExists(snipe.ModelManager, currentModel, modelFilter, messages);
 
-            messages.Add(snipe.CompanyManager.Create(currentCompany));
+            if (updatedModel.Manufacturer.Id != updatedManufacturer.Id || updatedModel.Category.Id != updatedCategory.Id)
+            {
+                // Model has changed
+                var message = snipe.ModelManager.Create(currentModel);
+                if (message.Status != "success")
+                    throw new Exception("Cannot create model.");
+                
+                messages.Add(message);
+                updatedModel = snipe.ModelManager.Get((int)message.Payload.Id);
+            }
+
             SearchFilter companyFilter = new SearchFilter { Search = currentCompany.Name };
-            Company updatedCompany = snipe.CompanyManager.FindOne(companyFilter);
+            Company updatedCompany = CreateEntityIfDoesNotExists(snipe.CompanyManager, currentCompany, companyFilter, messages);
 
-            messages.Add(snipe.StatusLabelManager.Create(currentStatusLabel));
             SearchFilter statusLabelFilter = new SearchFilter { Search = currentStatusLabel.Name };
-            StatusLabel updatedStatusLabel = snipe.StatusLabelManager.FindOne(statusLabelFilter);
+            StatusLabel updatedStatusLabel = CreateEntityIfDoesNotExists(snipe.StatusLabelManager, currentStatusLabel, statusLabelFilter, messages);
 
-            messages.Add(snipe.LocationManager.Create(currentLocation));
             SearchFilter locationFilter = new SearchFilter { Search = currentLocation.Name };
-            Location updatedLocation = snipe.LocationManager.FindOne(locationFilter);
+            Location updatedLocation = CreateEntityIfDoesNotExists(snipe.LocationManager, currentLocation, locationFilter, messages);
 
             currentAsset.Model = updatedModel;
             currentAsset.Company = updatedCompany;
@@ -220,6 +223,19 @@ namespace SnipeAgent
             }
             
             return messages;
+        }
+
+        private static T CreateEntityIfDoesNotExists<T>(IEndpointManager<T> endpointManager, T currentEntity, SearchFilter entityFilter, List<IRequestResponse> messages) 
+            where T : ICommonEndpointModel
+        {
+            var entity = endpointManager.FindOne(entityFilter);
+            if (entity != null)
+                return entity;
+
+            messages.Add(endpointManager.Create(currentEntity));
+            entity = endpointManager.FindOne(entityFilter);
+
+            return entity;
         }
 
         private Asset FindAssetBySerial(AssetEndpointManager assetManager, string serial)

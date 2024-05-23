@@ -220,18 +220,22 @@ namespace SnipeAgent
                 {
                     try
                     {
-                        int ouLevel;
-                        bool ouLevelSuccess = int.TryParse(Settings["OULevel"], out ouLevel);
-                        if (!ouLevelSuccess)
+                        int ouIndex, ouLevel;
+                        if (!int.TryParse(Settings["OULevel"], out ouLevel))
                         {
                             ouLevel = 1;
                         }
+                        if (!int.TryParse(Settings["OUIndex"], out ouIndex))
+                        {
+                            ouIndex = 0;
+                        }
+
                         string[] machineOU;
                         using (var context = new PrincipalContext(ContextType.Domain))
                         using (var comp = ComputerPrincipal.FindByIdentity(context, Environment.MachineName))
                             machineOU = comp.DistinguishedName.Split(',').SkipWhile(s => !s.StartsWith("OU=")).ToArray();
 
-                        location_string = machineOU[0].Split('=')[ouLevel];
+                        location_string = machineOU[ouIndex].Split('=')[ouLevel];
                     }
                     catch (Exception e)
                     {

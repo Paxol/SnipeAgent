@@ -60,7 +60,8 @@ namespace SnipeAgent
         public StatusLabel GetStatusLabel(NameValueCollection appSettings, SnipeItApi snipe)
         {
             string defaultLabel = appSettings["DefaultStatusLabel"];
-            StatusLabel defaultStatusLabel = new StatusLabel { Name = defaultLabel, Type = defaultLabel };
+            string defaultLabelKey = appSettings["DefaultStatusLabelKey"];
+            StatusLabel defaultStatusLabel = new StatusLabel { Name = defaultLabel, Type = defaultLabelKey };
             return defaultStatusLabel;
         }
 

@@ -19,7 +19,7 @@ namespace SnipeAgent
 
         }
 
-        public bool IsIdentical(Asset a1, Asset a2)
+        public bool IsIdentical(Asset a1, Asset a2, bool compareDefaultLocationInstead)
         {
             // We only need to check fields that are being populated by the SnipeAgent agent
             // i.e.. not ID, since that is managed by DB
@@ -34,7 +34,14 @@ namespace SnipeAgent
                 return false;
             }
 
-            if (a1.Location?.Id != a2.Location?.Id)
+            if (compareDefaultLocationInstead)
+            {
+                if (a1.RtdLocation?.Id != a2.RtdLocation?.Id)
+                {
+                    return false;
+                }
+            }
+            else if (a1.Location?.Id != a2.Location?.Id)
             {
                 return false;
             }
@@ -124,7 +131,7 @@ namespace SnipeAgent
         }
 
         public List<IRequestResponse> SyncAll(SnipeItApi snipe, Asset currentAsset, Model currentModel, Manufacturer currentManufacturer,
-            Category currentCategory, Company currentCompany, StatusLabel currentStatusLabel, Location currentLocation)
+            Category currentCategory, Company currentCompany, StatusLabel currentStatusLabel, Location currentLocation, NameValueCollection appSettings)
         {
             
             // Let's try to simplify the logic into a repeatable structure:
@@ -192,7 +199,12 @@ namespace SnipeAgent
             currentAsset.Model = updatedModel;
             currentAsset.Company = updatedCompany;
             currentAsset.StatusLabel = updatedStatusLabel;
-            currentAsset.Location = updatedLocation;
+
+            bool setDefaultLocationInstead = appSettings["SetDefaultLocationInstead"] == "true";
+            if (setDefaultLocationInstead)
+                currentAsset.RtdLocation = updatedLocation;
+            else
+                currentAsset.Location = updatedLocation;
 
             string currentSerial = currentAsset.Serial;
 
@@ -205,7 +217,7 @@ namespace SnipeAgent
             } else
             {
                 Console.WriteLine("Asset already exists in db. Checking for consistency.");
-                bool isIdentical = IsIdentical(currentAsset, dbAsset);
+                bool isIdentical = IsIdentical(currentAsset, dbAsset, setDefaultLocationInstead);
                 if (isIdentical)
                 {
                     Console.WriteLine("No changes required! Asset already exists and is up-to-date.");

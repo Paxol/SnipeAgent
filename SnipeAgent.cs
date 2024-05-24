@@ -352,7 +352,7 @@ namespace SnipeAgent
             if (connectionStatus)
             {
                 snipeBroker.SyncAll(snipe, currentAsset, currentModel, currentManufacturer, currentCategory,
-                                    currentCompany, currentStatusLabel, currentLocation);
+                                    currentCompany, currentStatusLabel, currentLocation, appSettings);
             } else {
                 Console.WriteLine("ERROR: Could not connect to SnipeIT database instance.");
                 // Until a standardized logging framework is set up, quick way to make user see crash message.
